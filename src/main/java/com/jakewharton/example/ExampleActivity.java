@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import android.widget.ImageView;
 import com.jakewharton.example.adjacent.R;
 
 public class ExampleActivity extends FragmentActivity {
+  private static final String TAG = "XXXXXXX";
   private static final String TAG_ONE = "one";
   private static final String TAG_TWO = "two";
   private static final int COLOR_ONE = 0xFF00FF00;
@@ -41,13 +43,17 @@ public class ExampleActivity extends FragmentActivity {
     FragmentTransaction remove = fragmentManager.beginTransaction();
     if (one == null) {
       one = ColorFragment.newInstance(COLOR_ONE);
+      Log.d(TAG, "Creating new fragment one.");
     } else {
       remove.remove(one);
+      Log.d(TAG, "Found existing fragment one.");
     }
     if (two == null) {
       two = ColorFragment.newInstance(COLOR_TWO);
+      Log.d(TAG, "Creating new fragment two.");
     } else {
       remove.remove(two);
+      Log.d(TAG, "Found existing fragment two.");
     }
     if (!remove.isEmpty()) {
       remove.commit();
