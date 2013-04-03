@@ -1,18 +1,19 @@
 package com.jakewharton.example;
 
+import android.content.res.Configuration;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.PagerAdapter;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
 import com.jakewharton.example.adjacent.R;
 
 public class ExampleActivity extends FragmentActivity {
@@ -22,6 +23,7 @@ public class ExampleActivity extends FragmentActivity {
   private static final int COLOR_ONE = 0xFF00FF00;
   private static final int COLOR_TWO = 0xFF0000FF;
   private static final String KEY_PAGE = "selected_page";
+  private static final int colors[] = { COLOR_ONE, COLOR_TWO };
 
   private ViewPager pager;
   private int lastPage; // If landscape, page from portrait.
@@ -40,35 +42,11 @@ public class ExampleActivity extends FragmentActivity {
     Fragment one = fragmentManager.findFragmentByTag(TAG_ONE);
     Fragment two = fragmentManager.findFragmentByTag(TAG_TWO);
 
-    FragmentTransaction remove = fragmentManager.beginTransaction();
-    if (one == null) {
-      one = ColorFragment.newInstance(COLOR_ONE);
-      Log.d(TAG, "Creating new fragment one.");
-    } else {
-      remove.remove(one);
-      Log.d(TAG, "Found existing fragment one.");
-    }
-    if (two == null) {
-      two = ColorFragment.newInstance(COLOR_TWO);
-      Log.d(TAG, "Creating new fragment two.");
-    } else {
-      remove.remove(two);
-      Log.d(TAG, "Found existing fragment two.");
-    }
-    if (!remove.isEmpty()) {
-      remove.commit();
-      fragmentManager.executePendingTransactions();
-    }
-
     pager = (ViewPager) findViewById(R.id.pager);
     if (pager != null) {
-      pager.setAdapter(new TwoFragmentAdapter(fragmentManager, one, two));
+      pager.setAdapter(new TwoFragmentAdapter(fragmentManager,
+                       getResources().getConfiguration().orientation));
       pager.setCurrentItem(lastPage);
-    } else {
-      fragmentManager.beginTransaction()
-          .add(R.id.left_pane, one, TAG_ONE)
-          .add(R.id.right_pane, two, TAG_TWO)
-          .commit();
     }
   }
 
@@ -81,69 +59,29 @@ public class ExampleActivity extends FragmentActivity {
     }
   }
 
-  private static class TwoFragmentAdapter extends PagerAdapter {
-    private final FragmentManager fragmentManager;
-    private final Fragment one;
-    private final Fragment two;
-    private FragmentTransaction currentTransaction = null;
-    private Fragment currentPrimaryItem = null;
-
-    public TwoFragmentAdapter(FragmentManager fragmentManager, Fragment one, Fragment two) {
-      this.fragmentManager = fragmentManager;
-      this.one = one;
-      this.two = two;
+  private static class TwoFragmentAdapter extends FragmentPagerAdapter {
+  int orientation;
+    public TwoFragmentAdapter(FragmentManager fm, int orientation) {
+      super(fm);
+      this.orientation = orientation;
     }
 
-    @Override public int getCount() {
+    @Override
+    public Fragment getItem(int arg0) {
+      return ColorFragment.newInstance(colors[arg0]);
+    }
+
+    @Override
+    public int getCount() {
       return 2;
     }
 
-    @Override public Object instantiateItem(ViewGroup container, int position) {
-      if (currentTransaction == null) {
-        currentTransaction = fragmentManager.beginTransaction();
-      }
-
-      String tag = (position == 0) ? TAG_ONE : TAG_TWO;
-      Fragment fragment = (position == 0) ? one : two;
-      currentTransaction.add(container.getId(), fragment, tag);
-      if (fragment != currentPrimaryItem) {
-        fragment.setMenuVisibility(false);
-        fragment.setUserVisibleHint(false);
-      }
-
-      return fragment;
-    }
-
-    @Override public void destroyItem(ViewGroup container, int position, Object object) {
-      // With two pages, fragments should never be destroyed.
-      throw new AssertionError();
-    }
-
-    @Override public void setPrimaryItem(ViewGroup container, int position, Object object) {
-      Fragment fragment = (Fragment) object;
-      if (fragment != currentPrimaryItem) {
-        if (currentPrimaryItem != null) {
-          currentPrimaryItem.setMenuVisibility(false);
-          currentPrimaryItem.setUserVisibleHint(false);
-        }
-        if (fragment != null) {
-          fragment.setMenuVisibility(true);
-          fragment.setUserVisibleHint(true);
-        }
-        currentPrimaryItem = fragment;
-      }
-    }
-
-    @Override public void finishUpdate(ViewGroup container) {
-      if (currentTransaction != null) {
-        currentTransaction.commitAllowingStateLoss();
-        currentTransaction = null;
-        fragmentManager.executePendingTransactions();
-      }
-    }
-
-    @Override public boolean isViewFromObject(View view, Object object) {
-      return ((Fragment) object).getView() == view;
+    @Override
+    public float getPageWidth(int position) {
+      if (orientation == Configuration.ORIENTATION_PORTRAIT)
+        return 1f;
+      else
+        return 0.5f;
     }
   }
 
@@ -159,6 +97,14 @@ public class ExampleActivity extends FragmentActivity {
       fragment.setArguments(arguments);
       return fragment;
     }
+
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    int color = getArguments().getInt(KEY_COLOR);
+    Log.d(getClass().getName(), "Creating fragment: " + color);
+    setRetainInstance(true);
+  }
 
     @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
