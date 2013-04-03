@@ -10,6 +10,9 @@ Due the shenanigans performed by `FragmentPagerAdapter` we're forced to write a 
 This sample is very-much hard coded and specific to two pages. If you wanted something a bit more
 robust and generalized it wouldn't be too much work to do so.
 
+![Image](image.png)
+
+
 
 *Note: Requires r12 of the support-v4 library that is not available in Maven central.*
 
