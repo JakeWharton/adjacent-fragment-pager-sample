@@ -149,7 +149,7 @@ public class ExampleActivity extends FragmentActivity {
 
   public static class ColorFragment extends Fragment {
     private static final String KEY_COLOR = "color";
-    public static final int DEFAULT_COLOR = 0xFFFF0000;
+    private static final int DEFAULT_COLOR = 0xFFFF0000;
 
     public static ColorFragment newInstance(int color) {
       Bundle arguments = new Bundle();
